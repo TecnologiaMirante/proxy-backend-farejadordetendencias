@@ -1,19 +1,17 @@
 const axios = require("axios");
 
 module.exports = async function (req, res) {
-  // Permitir CORS para seu domínio FlutterFlow
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://farejadordetendencias.flutterflow.app"
-  );
+  // Permitir CORS para seu app
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, charset");
 
-  // Lida com requisições preflight (OPTIONS)
+  // Requisição preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
+  // Apenas GET permitido
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Método não permitido" });
   }
