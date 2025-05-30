@@ -1,30 +1,39 @@
-const fetch = require("node-fetch");
+const axios = require("axios");
 
-module.exports = async (req, res) => {
+module.exports = async function (req, res) {
+  // Permitir CORS apenas do seu app FlutterFlow
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // Apenas método GET permitido
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Método não permitido" });
+  }
+
   const { url } = req.query;
 
   if (!url) {
-    return res.status(400).json({ error: 'Missing "url" query parameter.' });
+    return res.status(400).json({ error: 'Faltando parâmetro "url".' });
   }
 
   try {
-    const response = await fetch(url);
-    const contentType = response.headers.get("content-type");
+    const response = await axios.get(url, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
-    // Propaga os headers de CORS
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error(
+      "Erro ao buscar dados:",
+      error.response?.data || error.message
+    );
 
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-      return res.status(200).json(data);
-    } else {
-      const text = await response.text();
-      return res.status(200).send(text);
-    }
-  } catch (err) {
-    console.error("Proxy error:", err.message);
-    return res
-      .status(500)
-      .json({ error: "Failed to fetch target URL.", detail: err.message });
+    res.status(error.response?.status || 500).json({
+      error: error.message,
+      details: error.response?.data || null,
+    });
   }
 };
